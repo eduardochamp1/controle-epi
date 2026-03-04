@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de EPI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0f1a;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --border: #1e2d45;
+      --accent: #f59e0b;
+      --accent2: #3b82f6;
+      --valid: #10b981;
+      --invalid: #ef4444;
+      --warning: #f59e0b;
+      --text: #f1f5f9;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.3);
+      color: var(--accent);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    .header-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(36px, 8vw, 64px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .header-sub {
+      margin-top: 12px;
+      color: var(--text-muted);
+      font-size: 15px;
+      font-weight: 300;
+    }
+
+    /* Loading / Error / Not Found states */
+    .state-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 60px 40px;
+      text-align: center;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .state-icon {
+      font-size: 56px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .state-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .state-desc {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    /* Profile Card */
+    .profile-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease both;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+    }
+
+    .profile-header {
+      background: linear-gradient(135deg, #0f1f3d 0%, #1a2235 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-header::after {
+      content: 'EPI';
+      position: absolute;
+      right: -10px;
+      top: -10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 120px;
+      font-weight: 800;
+      color: rgba(245,158,11,0.04);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .profile-avatar {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--accent), #d97706);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: #000;
+      flex-shrink: 0;
+      box-shadow: 0 8px 24px rgba(245,158,11,0.3);
+    }
+
+    .profile-info h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .profile-matricula {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    .profile-matricula span {
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    /* Overall status banner */
+    .status-banner {
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .status-banner.all-valid {
+      background: rgba(16,185,129,0.1);
+      border-bottom: 1px solid rgba(16,185,129,0.2);
+      color: var(--valid);
+    }
+
+    .status-banner.has-invalid {
+      background: rgba(239,68,68,0.1);
+      border-bottom: 1px solid rgba(239,68,68,0.2);
+      color: var(--invalid);
+    }
+
+    .status-banner.has-warning {
+      background: rgba(245,158,11,0.1);
+      border-bottom: 1px solid rgba(245,158,11,0.2);
+      color: var(--warning);
+    }
+
+    /* EPI Grid */
+    .epi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .epi-item {
+      background: var(--surface);
+      padding: 24px 28px;
+      transition: background 0.2s;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .epi-item:hover {
+      background: var(--surface2);
+    }
+
+    .epi-item:nth-child(1) { animation-delay: 0.1s; }
+    .epi-item:nth-child(2) { animation-delay: 0.15s; }
+    .epi-item:nth-child(3) { animation-delay: 0.2s; }
+    .epi-item:nth-child(4) { animation-delay: 0.25s; }
+
+    .epi-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .epi-label::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--accent2);
+      border-radius: 2px;
+    }
+
+    .epi-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .epi-status.valido {
+      background: rgba(16,185,129,0.12);
+      color: var(--valid);
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+
+    .epi-status.invalido {
+      background: rgba(239,68,68,0.12);
+      color: var(--invalid);
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+
+    .epi-status.proximo {
+      background: rgba(245,158,11,0.12);
+      color: var(--warning);
+      border: 1px solid rgba(245,158,11,0.2);
+    }
+
+    .epi-date {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+
+    .epi-date strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Footer */
+    .card-footer {
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .footer-text strong {
+      color: var(--text-dim);
+    }
+
+    .update-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Config panel */
+    .config-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      animation: fadeDown 0.5s ease both;
+    }
+
+    .config-panel h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .config-panel p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .config-panel input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .config-panel input:focus {
+      outline: none;
+      border-color: var(--accent2);
+    }
+
+    .config-panel button {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .config-panel button:hover { opacity: 0.85; transform: translateY(-1px); }
+    .config-panel button:active { transform: translateY(0); }
+
+    /* Animations */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .profile-header { flex-direction: column; text-align: center; }
+      .card-footer { justify-content: center; text-align: center; }
+      .epi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-badge">Sistema de Segurança</div>
+    <h1>Controle de <span>EPI</span></h1>
+    <p class="header-sub">Equipamentos de Proteção Individual — Consulta de Vencimentos</p>
+  </div>
+
+  <!-- Config Panel (shown when no Sheet ID is set) -->
+  <div class="config-panel" id="configPanel" style="display:none">
+    <h3>⚙️ Configuração Inicial</h3>
+    <p>Cole abaixo o <strong>ID da sua planilha Google Sheets</strong>. Ela deve estar com acesso público (qualquer pessoa com o link pode visualizar).<br><br>
+    O ID é a parte da URL entre <code>/d/</code> e <code>/edit</code>:<br>
+    <code>docs.google.com/spreadsheets/d/<strong>SEU_ID_AQUI</strong>/edit</code></p>
+    <input type="text" id="sheetIdInput" placeholder="Cole o ID da planilha aqui..." />
+    <br>
+    <button onclick="saveSheetId()">Salvar e Continuar</button>
+  </div>
+
+  <!-- Content area -->
+  <div id="content"></div>
+
+</div>
+
+<script>
+  // =============================================
+  // CONFIGURAÇÃO — Substitua pelo ID real após publicar
+  // =============================================
+  const SHEET_ID_KEY = 'epi_sheet_id';
+  let SHEET_ID = localStorage.getItem(SHEET_ID_KEY) || '';
+
+  // Nome da aba na planilha (padrão: Plan1)
+  const SHEET_NAME = 'Plan1';
+
+  // Colunas esperadas (índices 0-based)
+  // A=Matrícula, B=Nome, C=Val.Capacete, D=Status Capacete,
+  // E=Val.Luva BT, F=Status Luva BT, G=Val.Luva MT, H=Status Luva MT,
+  // I=Val.Manga, J=Status Manga
+  // =============================================
+
+  function saveSheetId() {
+    const val = document.getElementById('sheetIdInput').value.trim();
+    if (!val) return alert('Cole o ID da planilha!');
+    localStorage.setItem(SHEET_ID_KEY, val);
+    SHEET_ID = val;
+    document.getElementById('configPanel').style.display = 'none';
+    init();
+  }
+
+  function getUrlParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  function getInitials(name) {
+    return name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+  }
+
+  function statusClass(s) {
+    if (!s) return 'invalido';
+    const v = s.toString().toUpperCase().trim();
+    if (v === 'VÁLIDO' || v === 'VALIDO') return 'valido';
+    if (v === 'INVÁLIDO' || v === 'INVALIDO') return 'invalido';
+    return 'proximo';
+  }
+
+  function statusIcon(s) {
+    const c = statusClass(s);
+    if (c === 'valido') return '✓';
+    if (c === 'invalido') return '✗';
+    return '⚠';
+  }
+
+  function isExpiringSoon(dateStr) {
+    if (!dateStr) return false;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return false;
+    const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    const diff = (d - new Date()) / (1000 * 60 * 60 * 24);
+    return diff > 0 && diff <= 30;
+  }
+
+  function renderLoading() {
+    document.getElementById('content').innerHTML = `
+      <div class="state-card">
+        <div class="spinner"></div>
+        <div class="state-title">Carregando dados...</div>
+        <div class="state-desc">Buscando informações do colaborador</div>
+      </div>`;
+  }
+
+  function renderError(msg) {
+    document.getElementById('content').innerHTML = `
+      <div class="state-card">
+        <span class="state-icon">⚠️</span>
+        <div class="state-title">Erro ao carregar</div>
+        <div class="state-desc">${msg}</div>
+      </div>`;
+  }
+
+  function renderNotFound(id) {
+    document.getElementById('content').innerHTML = `
+      <div class="state-card">
+        <span class="state-icon">🔍</span>
+        <div class="state-title">Colaborador não encontrado</div>
+        <div class="state-desc">Nenhum registro encontrado para a matrícula <strong>${id}</strong></div>
+      </div>`;
+  }
+
+  function renderNoId() {
+    document.getElementById('content').innerHTML = `
+      <div class="state-card">
+        <span class="state-icon">📋</span>
+        <div class="state-title">Nenhuma matrícula informada</div>
+        <div class="state-desc">Esta página deve ser acessada via QR Code individual de cada colaborador.<br><br>
+        Exemplo: <code>suapagina.com?id=35738</code></div>
+      </div>`;
+  }
+
+  function renderEmployee(row) {
+    const [matricula, nome, valCap, stsCap, valLBT, stsLBT, valLMT, stsLMT, valManga, stsManga] = row;
+
+    const epis = [
+      { label: 'Capacete',  validade: valCap,   status: stsCap   },
+      { label: 'Luva BT',   validade: valLBT,   status: stsLBT   },
+      { label: 'Luva MT',   validade: valLMT,   status: stsLMT   },
+      { label: 'Manga',     validade: valManga, status: stsManga  },
+    ];
+
+    const allValid = epis.every(e => statusClass(e.status) === 'valido');
+    const hasInvalid = epis.some(e => statusClass(e.status) === 'invalido');
+    const hasWarning = epis.some(e => isExpiringSoon(e.validade));
+
+    let bannerClass = 'all-valid';
+    let bannerMsg = '✓ Todos os EPIs estão dentro da validade';
+    if (hasInvalid) { bannerClass = 'has-invalid'; bannerMsg = '✗ Atenção: EPIs com vencimento irregular'; }
+    else if (hasWarning) { bannerClass = 'has-warning'; bannerMsg = '⚠ Atenção: EPIs próximos ao vencimento'; }
+
+    const epiItems = epis.map(e => {
+      const sc = statusClass(e.status);
+      const expiring = isExpiringSoon(e.validade);
+      const effectiveClass = expiring && sc === 'valido' ? 'proximo' : sc;
+      const effectiveStatus = expiring && sc === 'valido' ? 'VENCE EM BREVE' : (e.status || 'SEM DATA');
+      return `
+        <div class="epi-item">
+          <div class="epi-label">${e.label}</div>
+          <div class="epi-status ${effectiveClass}">
+            ${statusIcon(effectiveStatus)} ${effectiveStatus}
+          </div>
+          <div class="epi-date">
+            Validade: <strong>${e.validade || '—'}</strong>
+          </div>
+        </div>`;
+    }).join('');
+
+    const now = new Date().toLocaleString('pt-BR');
+
+    document.getElementById('content').innerHTML = `
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">${getInitials(nome)}</div>
+          <div class="profile-info">
+            <h2>${nome}</h2>
+            <div class="profile-matricula">Matrícula: <span>${matricula}</span></div>
+          </div>
+        </div>
+        <div class="status-banner ${bannerClass}">${bannerMsg}</div>
+        <div class="epi-grid">${epiItems}</div>
+        <div class="card-footer">
+          <div class="footer-text">Empresa <strong>ENGELMIG ELÉTRICA</strong></div>
+          <div class="update-time">🕐 Consultado em ${now}</div>
+        </div>
+      </div>`;
+  }
+
+  async function fetchEmployee(id) {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    // Google wraps response in callback, strip it
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const rows = json.table.rows;
+
+    const match = rows.find(r => {
+      const cell = r.c[0];
+      return cell && cell.v && cell.v.toString().trim() === id.toString().trim();
+    });
+
+    if (!match) return null;
+
+    return match.c.map(cell => {
+      if (!cell) return '';
+      // Handle date objects from Google Sheets
+      if (cell.f) return cell.f;
+      return cell.v !== null ? cell.v.toString() : '';
+    });
+  }
+
+  async function init() {
+    if (!SHEET_ID) {
+      document.getElementById('configPanel').style.display = 'block';
+      renderNoId();
+      return;
+    }
+
+    const id = getUrlParam('id') || getUrlParam('ID') || getUrlParam('matricula');
+
+    if (!id) {
+      renderNoId();
+      return;
+    }
+
+    renderLoading();
+
+    try {
+      const row = await fetchEmployee(id);
+      if (!row) {
+        renderNotFound(id);
+      } else {
+        renderEmployee(row);
+      }
+    } catch (e) {
+      console.error(e);
+      renderError('Verifique se o ID da planilha está correto e se ela está pública.<br><small>' + e.message + '</small>');
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
