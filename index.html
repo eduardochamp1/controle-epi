@@ -3,680 +3,361 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de EPI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <title>Controle de EPI — ENGELMIG Energia (Uso Interno)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    /* NOVA PALETA DE CORES ADAPTADA DO SITE DA ENGELMIG ENERGIA */
     :root {
-      --bg: #0a0f1a;
-      --surface: #111827;
-      --surface2: #1a2235;
-      --border: #1e2d45;
-      --accent: #f59e0b;
-      --accent2: #3b82f6;
-      --valid: #10b981;
-      --invalid: #ef4444;
-      --warning: #f59e0b;
-      --text: #f1f5f9;
-      --text-muted: #64748b;
-      --text-dim: #94a3b8;
+      --bg: #ffffff; /* Fundo principal claro */
+      --surface: #f9f9f9; /* Superície secundária claro */
+      --surface2: #f4f4f4; /* Superície terciária claro */
+      --border: #e0e0e0; /* Borda leve */
+      
+      --accent: #f59e0b; /* Amarelo/Dourado original */
+      --accent-orange: #d97706; /* Laranja do slogan no site */
+      --accent-green: #10b981; /* Verde do logotipo no site */
+      
+      --valid: #10b981; /* Verde de status (válido) */
+      --invalid: #ef4444; /* Vermelho de status (inválido) */
+      --warning: #f59e0b; /* Amarelo/Laranja de status (próximo) */
+      
+      --text: #000000; /* Texto principal preto */
+      --text-muted: #555555; /* Texto secundário cinza */
+      --text-dim: #777777; /* Texto terciário cinza */
+      
+      --top-bar-bg: #f5a623; /* Faixa laranja do topo */
+      --top-bar-text: #ffffff; /* Texto da faixa do topo */
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Barlow', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Background grid */
+    body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; min-height: 100vh; position: relative; }
+    
+    /* Adicionando uma sutil textura de papel como fundo, como no site corporativo */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
+      background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100" height="100" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+      opacity: 0.02;
       pointer-events: none;
       z-index: 0;
     }
 
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 40px 20px 60px;
-    }
-
-    /* Header */
-    .header {
-      text-align: center;
-      margin-bottom: 48px;
-      animation: fadeDown 0.6s ease both;
-    }
-
-    .header-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(245,158,11,0.1);
-      border: 1px solid rgba(245,158,11,0.3);
-      color: var(--accent);
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 6px 16px;
-      border-radius: 100px;
-      margin-bottom: 20px;
-    }
-
-    .header-badge::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--accent);
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    h1 {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: clamp(36px, 8vw, 64px);
-      font-weight: 800;
-      letter-spacing: -1px;
-      line-height: 1;
-      color: var(--text);
-    }
-
-    h1 span {
-      color: var(--accent);
-    }
-
-    .header-sub {
-      margin-top: 12px;
-      color: var(--text-muted);
-      font-size: 15px;
-      font-weight: 300;
-    }
-
-    /* Loading / Error / Not Found states */
-    .state-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 60px 40px;
-      text-align: center;
-      animation: fadeUp 0.5s ease both;
-    }
-
-    .state-icon {
-      font-size: 56px;
-      margin-bottom: 20px;
-      display: block;
-    }
-
-    .state-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .state-desc {
-      color: var(--text-muted);
-      font-size: 15px;
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 20px;
-    }
-
-    /* Profile Card */
-    .profile-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      animation: fadeUp 0.5s ease both;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.4);
-    }
-
-    .profile-header {
-      background: linear-gradient(135deg, #0f1f3d 0%, #1a2235 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 32px;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .profile-header::after {
-      content: 'EPI';
-      position: absolute;
-      right: -10px;
-      top: -10px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 120px;
-      font-weight: 800;
-      color: rgba(245,158,11,0.04);
-      line-height: 1;
-      pointer-events: none;
-    }
-
-    .profile-avatar {
-      width: 72px;
-      height: 72px;
-      background: linear-gradient(135deg, var(--accent), #d97706);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px;
-      font-weight: 800;
-      color: #000;
-      flex-shrink: 0;
-      box-shadow: 0 8px 24px rgba(245,158,11,0.3);
-    }
-
-    .profile-info h2 {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .profile-matricula {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-top: 4px;
-      font-weight: 500;
-      letter-spacing: 1px;
-    }
-
-    .profile-matricula span {
-      color: var(--accent2);
-      font-weight: 600;
-    }
-
-    /* Overall status banner */
-    .status-banner {
-      padding: 16px 32px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .status-banner.all-valid {
-      background: rgba(16,185,129,0.1);
-      border-bottom: 1px solid rgba(16,185,129,0.2);
-      color: var(--valid);
-    }
-
-    .status-banner.has-invalid {
-      background: rgba(239,68,68,0.1);
-      border-bottom: 1px solid rgba(239,68,68,0.2);
-      color: var(--invalid);
-    }
-
-    .status-banner.has-warning {
-      background: rgba(245,158,11,0.1);
-      border-bottom: 1px solid rgba(245,158,11,0.2);
-      color: var(--warning);
-    }
-
-    /* EPI Grid */
-    .epi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1px;
-      background: var(--border);
-    }
-
-    .epi-item {
-      background: var(--surface);
-      padding: 24px 28px;
-      transition: background 0.2s;
-      animation: fadeUp 0.5s ease both;
-    }
-
-    .epi-item:hover {
-      background: var(--surface2);
-    }
-
-    .epi-item:nth-child(1) { animation-delay: 0.1s; }
-    .epi-item:nth-child(2) { animation-delay: 0.15s; }
-    .epi-item:nth-child(3) { animation-delay: 0.2s; }
-    .epi-item:nth-child(4) { animation-delay: 0.25s; }
-
-    .epi-label {
+    /* Faixa Laranja do Topo - Como no site corporativo */
+    .top-bar {
+      background: var(--top-bar-bg);
+      color: var(--top-bar-text);
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      text-align: center;
+      padding: 10px 20px;
+      position: relative;
+      z-index: 2;
     }
 
-    .epi-label::before {
-      content: '';
-      display: inline-block;
-      width: 3px;
-      height: 14px;
-      background: var(--accent2);
-      border-radius: 2px;
-    }
+    .container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 20px 20px 60px; }
 
-    .epi-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
+    /* Cabeçalho Reestruturado */
+    .header { text-align: center; margin-bottom: 30px; animation: fadeDown .6s ease both; padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .company-logo { display: inline-block; margin-bottom: 15px; }
+    
+    /* LOGO SUBSTITUTO - Você deve substituir pela URL do logotipo real da ENGELMIG Energia (Verde/Preto) */
+    .logo-img { max-height: 50px; }
 
-    .epi-status.valido {
-      background: rgba(16,185,129,0.12);
-      color: var(--valid);
-      border: 1px solid rgba(16,185,129,0.2);
-    }
+    h1 { font-size: clamp(28px, 6vw, 48px); font-weight: 800; letter-spacing: -1px; line-height: 1; margin-bottom: 8px; }
+    h1 span { color: var(--accent); }
+    .header-sub { color: var(--text-muted); font-size: 14px; font-weight: 400; text-transform: uppercase; letter-spacing: 1px; }
 
-    .epi-status.invalido {
-      background: rgba(239,68,68,0.12);
-      color: var(--invalid);
-      border: 1px solid rgba(239,68,68,0.2);
-    }
+    /* TABS ADAPTADAS */
+    .tabs { display: flex; gap: 0; background: transparent; border: none; border-radius: 0; padding: 0; margin-bottom: 32px; animation: fadeUp .5s ease both; border-bottom: 2px solid var(--border); }
+    .tab { flex: 1; padding: 15px 20px; border-radius: 0; border: none; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: all .2s; text-transform: uppercase; border-bottom: 2px solid transparent; }
+    .tab.active { background: transparent; color: var(--accent-green); border-bottom: 2px solid var(--accent-green); }
+    .tab:hover:not(.active) { color: var(--accent); }
 
-    .epi-status.proximo {
-      background: rgba(245,158,11,0.12);
-      color: var(--warning);
-      border: 1px solid rgba(245,158,11,0.2);
-    }
+    /* BARRA DE PESQUISA ADAPTADA */
+    .search-bar { position: relative; margin-bottom: 24px; }
+    .search-bar input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px 20px 14px 52px; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 16px; transition: border-color .2s; }
+    .search-bar input:focus { outline: none; border-color: var(--accent-green); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); }
+    .search-bar input::placeholder { color: #aaaaaa; }
+    .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #aaaaaa; font-size: 18px; pointer-events: none; }
 
-    .epi-date {
-      font-size: 13px;
-      color: var(--text-dim);
-      margin-top: 6px;
-    }
+    /* FILTROS ADAPTADOS */
+    .filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center; }
+    .filter-btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-size: 12px; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: all .2s; text-transform: uppercase; }
+    .filter-btn.active { background: var(--accent-green); color: #ffffff; border-color: var(--accent-green); }
+    .filter-btn.invalido.active { background: var(--invalid); color: #ffffff; border-color: var(--invalid); }
+    .filter-btn.valido.active { background: var(--valid); color: #ffffff; border-color: var(--valid); }
+    .filter-btn:hover:not(.active) { background: var(--surface2); }
 
-    .epi-date strong {
-      color: var(--text);
-      font-weight: 600;
-    }
+    /* TÍTULOS ESTILO CORPORATIVO */
+    .table-section-title { font-size: 18px; font-weight: 700; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 16px; }
 
-    /* Footer */
-    .card-footer {
-      padding: 20px 32px;
-      border-top: 1px solid var(--border);
-      background: var(--surface2);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
+    /* ESTATÍSTICAS ADAPTADAS */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; text-align:center; transition: all 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .stat-num { font-size: 32px; font-weight: 800; }
+    .stat-num.total { color: var(--text); } .stat-num.ok { color: var(--valid); } .stat-num.nok { color: var(--invalid); }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 
-    .footer-text {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+    /* TABELA ADAPTADA */
+    .table-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .table-header { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+    .table-header-title { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: 1px; text-transform: uppercase; }
+    .result-count { font-size: 13px; color: var(--text-muted); }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--surface2); }
+    th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface); }
+    td { padding: 12px 16px; font-size: 14px; color: var(--text); }
+    td.name { font-weight: 600; }
+    td.mat { color: var(--text-muted); font-family: monospace; font-size: 13px; }
+    
+    /* BADGES ADAPTADAS */
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .badge.valido { background: rgba(16, 185, 129, 0.08); color: var(--valid); border: 1px solid rgba(16, 185, 129, 0.15); }
+    .badge.invalido { background: rgba(239, 68, 68, 0.08); color: var(--invalid); border: 1px solid rgba(239, 68, 68, 0.15); }
+    .badge.proximo { background: rgba(245, 158, 11, 0.08); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.15); }
+    
+    .spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--accent-green); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 20px; }
+    
+    /* PERFIL INDIVIDUAL ADAPTADO */
+    .individual-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-size: 13px; font-weight: 700; letter-spacing: 1px; padding: 10px 16px; border-radius: 6px; cursor: pointer; transition: all .2s; text-transform: uppercase; }
+    .back-btn:hover { color: var(--text); border-color: var(--accent-green); }
 
-    .footer-text strong {
-      color: var(--text-dim);
-    }
-
-    .update-time {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Config panel */
-    .config-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 32px;
-      animation: fadeDown 0.5s ease both;
-    }
-
-    .config-panel h3 {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--accent);
-    }
-
-    .config-panel p {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-bottom: 20px;
-      line-height: 1.6;
-    }
-
-    .config-panel input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-family: 'Barlow', sans-serif;
-      font-size: 14px;
-      margin-bottom: 12px;
-      transition: border-color 0.2s;
-    }
-
-    .config-panel input:focus {
-      outline: none;
-      border-color: var(--accent2);
-    }
-
-    .config-panel button {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-
-    .config-panel button:hover { opacity: 0.85; transform: translateY(-1px); }
-    .config-panel button:active { transform: translateY(0); }
-
-    /* Animations */
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    /* Mobile */
-    @media (max-width: 600px) {
+    .profile-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .profile-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 24px; display: flex; align-items: center; gap: 20px; position: relative; overflow: hidden; }
+    .profile-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--accent), #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #ffffff; flex-shrink: 0; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
+    .profile-info h2 { font-size: 24px; font-weight: 700; color: var(--text); }
+    .profile-matricula { color: var(--text-muted); font-size: 13px; margin-top: 2px; font-weight: 500; letter-spacing: 1px; }
+    .profile-matricula span { color: var(--accent-green); font-weight: 600; }
+    
+    .status-banner { padding: 12px 24px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    .status-banner.all-valid { background: rgba(16, 185, 129, 0.05); color: var(--valid); }
+    .status-banner.has-invalid { background: rgba(239, 68, 68, 0.05); color: var(--invalid); }
+    .status-banner.has-warning { background: rgba(245, 158, 11, 0.05); color: var(--warning); }
+    
+    .epi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; background: var(--border); }
+    .epi-item { background: var(--bg); padding: 20px 24px; transition: background .2s; }
+    .epi-item:hover { background: var(--surface); }
+    .epi-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .epi-label::before { content: ''; display: inline-block; width: 3px; height: 14px; background: var(--accent-green); border-radius: 2px; }
+    .epi-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 16px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
+    .epi-status.valido { background: rgba(16, 185, 129, 0.08); color: var(--valid); border: 1px solid rgba(16, 185, 129, 0.15); }
+    .epi-status.invalido { background: rgba(239, 68, 68, 0.08); color: var(--invalid); border: 1px solid rgba(239, 68, 68, 0.15); }
+    .epi-status.proximo { background: rgba(245, 158, 11, 0.08); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.15); }
+    .epi-date { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+    .epi-date strong { color: var(--text); font-weight: 600; }
+    
+    .card-footer { padding: 16px 24px; border-top: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .footer-text { font-size: 11px; color: var(--text-muted); }
+    .footer-text strong { color: var(--text-dim); }
+    .update-time { font-size: 11px; color: var(--text-muted); }
+    
+    .page { display: none; } .page.active { display: block; }
+    
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    @media (max-width: 700px) {
       .profile-header { flex-direction: column; text-align: center; }
-      .card-footer { justify-content: center; text-align: center; }
+      .card-footer { justify-content: center; }
       .epi-grid { grid-template-columns: 1fr; }
+      th.hm, td.hm { display: none; }
+      .company-header { flex-direction: column; text-align: center; gap: 10px; }
     }
   </style>
 </head>
 <body>
-
-<div class="container">
-
-  <div class="header">
-    <div class="header-badge">Sistema de Segurança</div>
-    <h1>Controle de <span>EPI</span></h1>
-    <p class="header-sub">Equipamentos de Proteção Individual — Consulta de Vencimentos</p>
-  </div>
-
-  <!-- Config Panel (shown when no Sheet ID is set) -->
-  <div class="config-panel" id="configPanel" style="display:none">
-    <h3>⚙️ Configuração Inicial</h3>
-    <p>Cole abaixo o <strong>ID da sua planilha Google Sheets</strong>. Ela deve estar com acesso público (qualquer pessoa com o link pode visualizar).<br><br>
-    O ID é a parte da URL entre <code>/d/</code> e <code>/edit</code>:<br>
-    <code>docs.google.com/spreadsheets/d/<strong>SEU_ID_AQUI</strong>/edit</code></p>
-    <input type="text" id="sheetIdInput" placeholder="Cole o ID da planilha aqui..." />
-    <br>
-    <button onclick="saveSheetId()">Salvar e Continuar</button>
-  </div>
-
-  <!-- Content area -->
-  <div id="content"></div>
-
-</div>
-
-<script>
-  // =============================================
-  // CONFIGURAÇÃO — Substitua pelo ID real após publicar
-  // =============================================
-  const SHEET_ID_KEY = 'epi_sheet_id';
-  let SHEET_ID = localStorage.getItem(SHEET_ID_KEY) || '';
-
-  // Nome da aba na planilha (padrão: Plan1)
-  const SHEET_NAME = 'Plan1';
-
-  // Colunas esperadas (índices 0-based)
-  // A=Matrícula, B=Nome, C=Val.Capacete, D=Status Capacete,
-  // E=Val.Luva BT, F=Status Luva BT, G=Val.Luva MT, H=Status Luva MT,
-  // I=Val.Manga, J=Status Manga
-  // =============================================
-
-  function saveSheetId() {
-    const val = document.getElementById('sheetIdInput').value.trim();
-    if (!val) return alert('Cole o ID da planilha!');
-    localStorage.setItem(SHEET_ID_KEY, val);
-    SHEET_ID = val;
-    document.getElementById('configPanel').style.display = 'none';
-    init();
-  }
-
-  function getUrlParam(name) {
-    return new URLSearchParams(window.location.search).get(name);
-  }
-
-  function getInitials(name) {
-    return name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
-  }
-
-  function statusClass(s) {
-    if (!s) return 'invalido';
-    const v = s.toString().toUpperCase().trim();
-    if (v === 'VÁLIDO' || v === 'VALIDO') return 'valido';
-    if (v === 'INVÁLIDO' || v === 'INVALIDO') return 'invalido';
-    return 'proximo';
-  }
-
-  function statusIcon(s) {
-    const c = statusClass(s);
-    if (c === 'valido') return '✓';
-    if (c === 'invalido') return '✗';
-    return '⚠';
-  }
-
-  function isExpiringSoon(dateStr) {
-    if (!dateStr) return false;
-    const parts = dateStr.split('/');
-    if (parts.length !== 3) return false;
-    const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-    const diff = (d - new Date()) / (1000 * 60 * 60 * 24);
-    return diff > 0 && diff <= 30;
-  }
-
-  function renderLoading() {
-    document.getElementById('content').innerHTML = `
-      <div class="state-card">
-        <div class="spinner"></div>
-        <div class="state-title">Carregando dados...</div>
-        <div class="state-desc">Buscando informações do colaborador</div>
-      </div>`;
-  }
-
-  function renderError(msg) {
-    document.getElementById('content').innerHTML = `
-      <div class="state-card">
-        <span class="state-icon">⚠️</span>
-        <div class="state-title">Erro ao carregar</div>
-        <div class="state-desc">${msg}</div>
-      </div>`;
-  }
-
-  function renderNotFound(id) {
-    document.getElementById('content').innerHTML = `
-      <div class="state-card">
-        <span class="state-icon">🔍</span>
-        <div class="state-title">Colaborador não encontrado</div>
-        <div class="state-desc">Nenhum registro encontrado para a matrícula <strong>${id}</strong></div>
-      </div>`;
-  }
-
-  function renderNoId() {
-    document.getElementById('content').innerHTML = `
-      <div class="state-card">
-        <span class="state-icon">📋</span>
-        <div class="state-title">Nenhuma matrícula informada</div>
-        <div class="state-desc">Esta página deve ser acessada via QR Code individual de cada colaborador.<br><br>
-        Exemplo: <code>suapagina.com?id=35738</code></div>
-      </div>`;
-  }
-
-  function renderEmployee(row) {
-    const [matricula, nome, valCap, stsCap, valLBT, stsLBT, valLMT, stsLMT, valManga, stsManga] = row;
-
-    const epis = [
-      { label: 'Capacete',  validade: valCap,   status: stsCap   },
-      { label: 'Luva BT',   validade: valLBT,   status: stsLBT   },
-      { label: 'Luva MT',   validade: valLMT,   status: stsLMT   },
-      { label: 'Manga',     validade: valManga, status: stsManga  },
-    ];
-
-    const allValid = epis.every(e => statusClass(e.status) === 'valido');
-    const hasInvalid = epis.some(e => statusClass(e.status) === 'invalido');
-    const hasWarning = epis.some(e => isExpiringSoon(e.validade));
-
-    let bannerClass = 'all-valid';
-    let bannerMsg = '✓ Todos os EPIs estão dentro da validade';
-    if (hasInvalid) { bannerClass = 'has-invalid'; bannerMsg = '✗ Atenção: EPIs com vencimento irregular'; }
-    else if (hasWarning) { bannerClass = 'has-warning'; bannerMsg = '⚠ Atenção: EPIs próximos ao vencimento'; }
-
-    const epiItems = epis.map(e => {
-      const sc = statusClass(e.status);
-      const expiring = isExpiringSoon(e.validade);
-      const effectiveClass = expiring && sc === 'valido' ? 'proximo' : sc;
-      const effectiveStatus = expiring && sc === 'valido' ? 'VENCE EM BREVE' : (e.status || 'SEM DATA');
-      return `
-        <div class="epi-item">
-          <div class="epi-label">${e.label}</div>
-          <div class="epi-status ${effectiveClass}">
-            ${statusIcon(effectiveStatus)} ${effectiveStatus}
-          </div>
-          <div class="epi-date">
-            Validade: <strong>${e.validade || '—'}</strong>
-          </div>
-        </div>`;
-    }).join('');
-
-    const now = new Date().toLocaleString('pt-BR');
-
-    document.getElementById('content').innerHTML = `
-      <div class="profile-card">
-        <div class="profile-header">
-          <div class="profile-avatar">${getInitials(nome)}</div>
-          <div class="profile-info">
-            <h2>${nome}</h2>
-            <div class="profile-matricula">Matrícula: <span>${matricula}</span></div>
-          </div>
+  <div class="top-bar">Conectando pessoas com segurança</div>
+  <div class="container">
+    <div class="header">
+      <div class="company-logo">
+        <img src="./img/Logo Engelmig Energia.png"ENGELMIG Energia" class="logo-img" id="logoImg">
+      </div>
+      <p class="header-sub">USO INTERNO - ENGELMIG ENERGIA</p>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('consulta')">🔍 Consulta Geral</button>
+      <button class="tab" onclick="showTab('individual')" id="tabIndividual">👤 Colaborador</button>
+    </div>
+    
+    <div class="page active" id="pageConsulta">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Pesquisar por nome ou matrícula..." oninput="filterTable()">
+      </div>
+      
+      <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+        <button class="filter-btn invalido" onclick="setFilter('invalido',this)">⚠ Com Irregulares</button>
+        <button class="filter-btn valido" onclick="setFilter('valido',this)">✓ Todos Válidos</button>
+      </div>
+      
+      <div class="table-section-title">EPI CONTROL — SEGURANÇA NO MERCADO</div>
+      
+      <div class="stats">
+        <div class="stat-card"><div class="stat-num total" id="statTotal">—</div><div class="stat-label">Total</div></div>
+        <div class="stat-card"><div class="stat-num ok" id="statOk">—</div><div class="stat-label">Todos Válidos</div></div>
+        <div class="stat-card"><div class="stat-num nok" id="statNok">—</div><div class="stat-label">Com Irregulares</div></div>
+      </div>
+      
+      <div class="table-wrap">
+        <div class="table-header">
+          <span class="table-header-title">Colaboradores</span>
+          <span class="result-count" id="resultCount"></span>
         </div>
-        <div class="status-banner ${bannerClass}">${bannerMsg}</div>
-        <div class="epi-grid">${epiItems}</div>
-        <div class="card-footer">
-          <div class="footer-text">Empresa <strong>ENGELMIG ELÉTRICA</strong></div>
-          <div class="update-time">🕐 Consultado em ${now}</div>
-        </div>
-      </div>`;
-  }
-
-  async function fetchEmployee(id) {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-    const res = await fetch(url);
-    const text = await res.text();
-    // Google wraps response in callback, strip it
-    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-    const rows = json.table.rows;
-
-    const match = rows.find(r => {
-      const cell = r.c[0];
-      return cell && cell.v && cell.v.toString().trim() === id.toString().trim();
-    });
-
-    if (!match) return null;
-
-    return match.c.map(cell => {
-      if (!cell) return '';
-      // Handle date objects from Google Sheets
-      if (cell.f) return cell.f;
-      return cell.v !== null ? cell.v.toString() : '';
-    });
-  }
-
-  async function init() {
-    if (!SHEET_ID) {
-      document.getElementById('configPanel').style.display = 'block';
-      renderNoId();
-      return;
-    }
-
-    const id = getUrlParam('id') || getUrlParam('ID') || getUrlParam('matricula');
-
-    if (!id) {
-      renderNoId();
-      return;
-    }
-
-    renderLoading();
-
-    try {
-      const row = await fetchEmployee(id);
-      if (!row) {
-        renderNotFound(id);
-      } else {
-        renderEmployee(row);
+        <table>
+          <thead><tr>
+            <th>Matrícula</th><th>Nome</th>
+            <th class="hm">Capacete</th><th class="hm">Luva BT</th><th class="hm">Luva MT</th><th class="hm">Manga</th>
+            <th>Status Geral</th>
+          </tr></thead>
+          <tbody id="tableBody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">
+              <div class="spinner" style="margin:0 auto 12px"></div>Carregando dados...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="page" id="pageIndividual">
+      <div class="individual-header">
+        <button class="back-btn" onclick="showTab('consulta')">← Voltar à Consulta</button>
+        <div class="table-section-title" style="margin:0">Perfil do Colaborador</div>
+      </div>
+      <div id="cardContent"></div>
+    </div>
+  </div>
+  
+  <script>
+    /* O SCRIPT PERMANECE EXATAMENTE O MESMO, SEM ALTERAÇÕES DE LÓGICA */
+    const FLOW_URL='https://default095fcbf25c0440c79d9b07006f3bb0.bc.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/55edf60dff3843b49baa5ad1ca820bf5/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=3jushhOBZzx7hCE34-JFa4COTUUTAUJ6LC5Hpq1AuIc';
+    let allItems=[],currentFilter='todos';
+    function param(n){return new URLSearchParams(window.location.search).get(n)}
+    function initials(n){if(!n)return'?';return n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase()}
+    function fmtDate(v){if(!v)return'—';if(typeof v==='string'&&v.includes('T')){return new Date(v).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})}return v}
+    function norm(s){if(!s)return'';return s.toString().toUpperCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+    function sClass(s){const v=norm(s);if(v==='VALIDO')return'valido';if(v==='INVALIDO')return'invalido';if(v)return'proximo';return'invalido'}
+    function sIcon(c){return c==='valido'?'✓':c==='invalido'?'✗':'⚠'}
+    function expiring(v){if(!v||v==='—')return false;const d=v.includes('T')?new Date(v):null;if(!d)return false;const diff=(d-new Date())/86400000;return diff>0&&diff<=30}
+    function get(item,...keys){for(const k of keys)if(item[k]!=null&&item[k]!=='')return item[k];return''}
+    function parseItem(item){
+      return{
+        matricula:get(item,'Matr_x00ed_cula','Matricula','Title'),
+        nome:get(item,'Nome','Title'),
+        valCap:get(item,'ValidadeCapacete'),
+        stsCap:get(item,'Coluna_x0020_Calculada'),
+        valLBT:get(item,'ValidadeLuvaBT'),
+        stsLBT:get(item,'Status_x0020_Luva_x0020_BT','StatusLuvaBT'),
+        valLMT:get(item,'ValidadeLuvaMT'),
+        stsLMT:get(item,'Status_x0020_Luva_x0020_MT','StatusLuvaMT'),
+        valManga:get(item,'ValidadedaManga','ValidadeManga'),
+        stsManga:get(item,'Status_x0020_da_x0020_Manga','StatusdaManga','StatusManga')
       }
-    } catch (e) {
-      console.error(e);
-      renderError('Verifique se o ID da planilha está correto e se ela está pública.<br><small>' + e.message + '</small>');
     }
-  }
-
-  init();
-</script>
+    function overallStatus(p){
+      const ss=[p.stsCap,p.stsLBT,p.stsLMT,p.stsManga];
+      const vs=[p.valCap,p.valLBT,p.valLMT,p.valManga];
+      if(ss.some(s=>sClass(s)==='invalido'))return'invalido';
+      if(vs.some(v=>expiring(v)))return'proximo';
+      return'valido';
+    }
+    function showTab(tab){
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      if(tab==='consulta'){document.getElementById('pageConsulta').classList.add('active');document.querySelectorAll('.tab')[0].classList.add('active')}
+      else{document.getElementById('pageIndividual').classList.add('active');document.getElementById('tabIndividual').classList.add('active')}
+    }
+    function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');filterTable()}
+    function filterTable(){
+      const q=document.getElementById('searchInput').value.toLowerCase();
+      const rows=document.querySelectorAll('#tableBody tr[data-mat]');
+      let visible=0;
+      rows.forEach(row=>{
+        const matchSearch=!q||row.dataset.mat.toLowerCase().includes(q)||row.dataset.name.toLowerCase().includes(q);
+        const matchFilter=currentFilter==='todos'||row.dataset.status===currentFilter;
+        const show=matchSearch&&matchFilter;
+        row.style.display=show?'':'none';
+        if(show)visible++;
+      });
+      document.getElementById('resultCount').textContent=`${visible} colaborador${visible!==1?'es':''}`;
+    }
+    function renderTable(items){
+      const tbody=document.getElementById('tableBody');
+      if(!items.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-muted)">Nenhum colaborador encontrado</td></tr>';return}
+      let ok=0,nok=0;
+      tbody.innerHTML=items.map(item=>{
+        const p=parseItem(item);
+        const os=overallStatus(p);
+        if(os==='valido')ok++;else nok++;
+        const badge=(s,v)=>{const sc=sClass(s);const cls=expiring(v)&&sc==='valido'?'proximo':sc;return`<span class="badge ${cls}">${sIcon(cls)} ${s?norm(s):'—'}</span>`};
+        const osBadge=os==='valido'?'<span class="badge valido">✓ OK</span>':os==='proximo'?'<span class="badge proximo">⚠ Atenção</span>':'<span class="badge invalido">✗ Irregular</span>';
+        return`<tr data-mat="${p.matricula}" data-name="${p.nome}" data-status="${os}" onclick="showEmployee('${p.matricula}')">
+          <td class="mat">${p.matricula}</td><td class="name">${p.nome}</td>
+          <td class="hm">${badge(p.stsCap,p.valCap)}</td><td class="hm">${badge(p.stsLBT,p.valLBT)}</td>
+          <td class="hm">${badge(p.stsLMT,p.valLMT)}</td><td class="hm">${badge(p.stsManga,p.valManga)}</td>
+          <td>${osBadge}</td>
+        </tr>`;
+      }).join('');
+      document.getElementById('statTotal').textContent=items.length;
+      document.getElementById('statOk').textContent=ok;
+      document.getElementById('statNok').textContent=nok;
+      document.getElementById('resultCount').textContent=`${items.length} colaboradores`;
+    }
+    function showEmployee(matricula){
+      const item=allItems.find(i=>get(i,'Matr_x00ed_cula','Matricula','Title').toString().trim()===matricula.toString().trim());
+      if(!item)return;
+      const p=parseItem(item);
+      const epis=[
+        {label:'Capacete',validade:fmtDate(p.valCap),status:p.stsCap,raw:p.valCap},
+        {label:'Luva BT',validade:fmtDate(p.valLBT),status:p.stsLBT,raw:p.valLBT},
+        {label:'Luva MT',validade:fmtDate(p.valLMT),status:p.stsLMT,raw:p.valLMT},
+        {label:'Manga',validade:fmtDate(p.valManga),status:p.stsManga,raw:p.valManga}
+      ];
+      const hasInvalid=epis.some(e=>sClass(e.status)==='invalido');
+      const hasWarn=epis.some(e=>expiring(e.raw));
+      let bClass='all-valid',bMsg='✓ Todos os EPIs estão dentro da validade';
+      if(hasInvalid){bClass='has-invalid';bMsg='✗ Atenção: EPIs com vencimento irregular'}
+      else if(hasWarn){bClass='has-warning';bMsg='⚠ Atenção: EPIs próximos ao vencimento'}
+      const epiItems=epis.map(e=>{
+        const sc=sClass(e.status);const exp=expiring(e.raw);
+        const cls=exp&&sc==='valido'?'proximo':sc;
+        const lbl=exp&&sc==='valido'?'VENCE EM BREVE':(e.status?norm(e.status):'SEM REGISTRO');
+        return`<div class="epi-item"><div class="epi-label">${e.label}</div><div class="epi-status ${cls}">${sIcon(cls)} ${lbl}</div><div class="epi-date">Validade: <strong>${e.validade}</strong></div></div>`;
+      }).join('');
+      document.getElementById('cardContent').innerHTML=`<div class="profile-card">
+        <div class="profile-header"><div class="profile-avatar">${initials(p.nome)}</div>
+        <div class="profile-info"><h2>${p.nome}</h2><div class="profile-matricula">Matrícula: <span>${p.matricula}</span></div></div></div>
+        <div class="status-banner ${bClass}">${bMsg}</div>
+        <div class="epi-grid">${epiItems}</div>
+        <div class="card-footer"><div class="footer-text">Empresa <strong>ENGELMIG ENERGIA</strong></div><div class="update-time">🕐 ${new Date().toLocaleString('pt-BR')}</div></div>
+      </div>`;
+      showTab('individual');
+    }
+    async function init(){
+      try{
+        const res=await fetch(FLOW_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+        if(!res.ok)throw new Error(`HTTP ${res.status}`);
+        const data=await res.json();
+        allItems=Array.isArray(data)?data:(data.value||[]);
+        renderTable(allItems);
+        const id=param('id')||param('ID')||param('matricula');
+        if(id)showEmployee(id);
+      }catch(e){
+        console.error(e);
+        document.getElementById('tableBody').innerHTML=`<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--invalid)">⚠ Erro ao carregar: ${e.message}</td></tr>`;
+      }
+    }
+    init();
+  </script>
 </body>
 </html>
