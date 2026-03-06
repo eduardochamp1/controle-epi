@@ -74,7 +74,8 @@
     .tabs { display: flex; gap: 0; background: transparent; border: none; border-radius: 0; padding: 0; margin-bottom: 32px; animation: fadeUp .5s ease both; border-bottom: 2px solid var(--border); }
     .tab { flex: 1; padding: 15px 20px; border-radius: 0; border: none; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: all .2s; text-transform: uppercase; border-bottom: 2px solid transparent; }
     .tab.active { background: transparent; color: var(--accent-green); border-bottom: 2px solid var(--accent-green); }
-    .tab:hover:not(.active) { color: var(--accent); }
+    .tab:hover:not(.active):not(:disabled) { color: var(--accent); }
+    .tab:disabled { opacity: 0.35; cursor: not-allowed; }
 
     /* BARRA DE PESQUISA ADAPTADA */
     .search-bar { position: relative; margin-bottom: 24px; }
@@ -95,11 +96,11 @@
     .table-section-title { font-size: 18px; font-weight: 700; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 16px; }
 
     /* ESTATÍSTICAS ADAPTADAS */
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 24px; }
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; text-align:center; transition: all 0.2s; }
     .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .stat-num { font-size: 32px; font-weight: 800; }
-    .stat-num.total { color: var(--text); } .stat-num.ok { color: var(--valid); } .stat-num.nok { color: var(--invalid); }
+    .stat-num.total { color: var(--text); } .stat-num.ok { color: var(--valid); } .stat-num.warn { color: var(--warning); } .stat-num.nok { color: var(--invalid); }
     .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 
     /* TABELA ADAPTADA */
@@ -179,14 +180,14 @@
   <div class="container">
     <div class="header">
       <div class="company-logo">
-        <img src="./img/Logo Engelmig Energia.png"ENGELMIG Energia" class="logo-img" id="logoImg">
+        <img src="./img/Logo Engelmig Energia.png" alt="ENGELMIG Energia" class="logo-img" id="logoImg">
       </div>
       <p class="header-sub">USO INTERNO - ENGELMIG ENERGIA</p>
     </div>
     
     <div class="tabs">
       <button class="tab active" onclick="showTab('consulta')">🔍 Consulta Geral</button>
-      <button class="tab" onclick="showTab('individual')" id="tabIndividual">👤 Colaborador</button>
+      <button class="tab" onclick="showTab('individual')" id="tabIndividual" disabled>👤 Colaborador</button>
     </div>
     
     <div class="page active" id="pageConsulta">
@@ -206,7 +207,8 @@
       <div class="stats">
         <div class="stat-card"><div class="stat-num total" id="statTotal">—</div><div class="stat-label">Total</div></div>
         <div class="stat-card"><div class="stat-num ok" id="statOk">—</div><div class="stat-label">Todos Válidos</div></div>
-        <div class="stat-card"><div class="stat-num nok" id="statNok">—</div><div class="stat-label">Com Irregulares</div></div>
+        <div class="stat-card"><div class="stat-num warn" id="statWarn">—</div><div class="stat-label">Atenção</div></div>
+        <div class="stat-card"><div class="stat-num nok" id="statNok">—</div><div class="stat-label">Irregulares</div></div>
       </div>
       
       <div class="table-wrap">
@@ -246,6 +248,7 @@
     function initials(n){if(!n)return'?';return n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase()}
     function fmtDate(v){if(!v)return'—';if(typeof v==='string'&&v.includes('T')){return new Date(v).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})}return v}
     function norm(s){if(!s)return'';return s.toString().toUpperCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+    function sanitize(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;')}
     function sClass(s){const v=norm(s);if(v==='VALIDO')return'valido';if(v==='INVALIDO')return'invalido';if(v)return'proximo';return'invalido'}
     function sIcon(c){return c==='valido'?'✓':c==='invalido'?'✗':'⚠'}
     function expiring(v){if(!v||v==='—')return false;const d=v.includes('T')?new Date(v):null;if(!d)return false;const diff=(d-new Date())/86400000;return diff>0&&diff<=30}
@@ -274,16 +277,22 @@
     function showTab(tab){
       document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      if(tab==='consulta'){document.getElementById('pageConsulta').classList.add('active');document.querySelectorAll('.tab')[0].classList.add('active')}
-      else{document.getElementById('pageIndividual').classList.add('active');document.getElementById('tabIndividual').classList.add('active')}
+      if(tab==='consulta'){
+        document.getElementById('pageConsulta').classList.add('active');
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('tabIndividual').disabled=true;
+      }else{
+        document.getElementById('pageIndividual').classList.add('active');
+        document.getElementById('tabIndividual').classList.add('active');
+      }
     }
     function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');filterTable()}
     function filterTable(){
-      const q=document.getElementById('searchInput').value.toLowerCase();
+      const q=norm(document.getElementById('searchInput').value);
       const rows=document.querySelectorAll('#tableBody tr[data-mat]');
       let visible=0;
       rows.forEach(row=>{
-        const matchSearch=!q||row.dataset.mat.toLowerCase().includes(q)||row.dataset.name.toLowerCase().includes(q);
+        const matchSearch=!q||norm(row.dataset.mat).includes(q)||norm(row.dataset.name).includes(q);
         const matchFilter=currentFilter==='todos'||row.dataset.status===currentFilter;
         const show=matchSearch&&matchFilter;
         row.style.display=show?'':'none';
@@ -294,15 +303,15 @@
     function renderTable(items){
       const tbody=document.getElementById('tableBody');
       if(!items.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-muted)">Nenhum colaborador encontrado</td></tr>';return}
-      let ok=0,nok=0;
+      let ok=0,warn=0,nok=0;
       tbody.innerHTML=items.map(item=>{
         const p=parseItem(item);
         const os=overallStatus(p);
-        if(os==='valido')ok++;else nok++;
-        const badge=(s,v)=>{const sc=sClass(s);const cls=expiring(v)&&sc==='valido'?'proximo':sc;return`<span class="badge ${cls}">${sIcon(cls)} ${s?norm(s):'—'}</span>`};
+        if(os==='valido')ok++;else if(os==='proximo')warn++;else nok++;
+        const badge=(s,v)=>{const sc=sClass(s);const cls=expiring(v)&&sc==='valido'?'proximo':sc;return`<span class="badge ${cls}">${sIcon(cls)} ${sanitize(s?norm(s):'—')}</span>`};
         const osBadge=os==='valido'?'<span class="badge valido">✓ OK</span>':os==='proximo'?'<span class="badge proximo">⚠ Atenção</span>':'<span class="badge invalido">✗ Irregular</span>';
-        return`<tr data-mat="${p.matricula}" data-name="${p.nome}" data-status="${os}" onclick="showEmployee('${p.matricula}')">
-          <td class="mat">${p.matricula}</td><td class="name">${p.nome}</td>
+        return`<tr data-mat="${sanitize(p.matricula)}" data-name="${sanitize(p.nome)}" data-status="${os}" onclick="showEmployee(this.dataset.mat)">
+          <td class="mat">${sanitize(p.matricula)}</td><td class="name">${sanitize(p.nome)}</td>
           <td class="hm">${badge(p.stsCap,p.valCap)}</td><td class="hm">${badge(p.stsLBT,p.valLBT)}</td>
           <td class="hm">${badge(p.stsLMT,p.valLMT)}</td><td class="hm">${badge(p.stsManga,p.valManga)}</td>
           <td>${osBadge}</td>
@@ -310,6 +319,7 @@
       }).join('');
       document.getElementById('statTotal').textContent=items.length;
       document.getElementById('statOk').textContent=ok;
+      document.getElementById('statWarn').textContent=warn;
       document.getElementById('statNok').textContent=nok;
       document.getElementById('resultCount').textContent=`${items.length} colaboradores`;
     }
@@ -331,16 +341,17 @@
       const epiItems=epis.map(e=>{
         const sc=sClass(e.status);const exp=expiring(e.raw);
         const cls=exp&&sc==='valido'?'proximo':sc;
-        const lbl=exp&&sc==='valido'?'VENCE EM BREVE':(e.status?norm(e.status):'SEM REGISTRO');
-        return`<div class="epi-item"><div class="epi-label">${e.label}</div><div class="epi-status ${cls}">${sIcon(cls)} ${lbl}</div><div class="epi-date">Validade: <strong>${e.validade}</strong></div></div>`;
+        const lbl=exp&&sc==='valido'?'VENCE EM BREVE':sanitize(e.status?norm(e.status):'SEM REGISTRO');
+        return`<div class="epi-item"><div class="epi-label">${e.label}</div><div class="epi-status ${cls}">${sIcon(cls)} ${lbl}</div><div class="epi-date">Validade: <strong>${sanitize(e.validade)}</strong></div></div>`;
       }).join('');
       document.getElementById('cardContent').innerHTML=`<div class="profile-card">
         <div class="profile-header"><div class="profile-avatar">${initials(p.nome)}</div>
-        <div class="profile-info"><h2>${p.nome}</h2><div class="profile-matricula">Matrícula: <span>${p.matricula}</span></div></div></div>
+        <div class="profile-info"><h2>${sanitize(p.nome)}</h2><div class="profile-matricula">Matrícula: <span>${sanitize(p.matricula)}</span></div></div></div>
         <div class="status-banner ${bClass}">${bMsg}</div>
         <div class="epi-grid">${epiItems}</div>
         <div class="card-footer"><div class="footer-text">Empresa <strong>ENGELMIG ENERGIA</strong></div><div class="update-time">🕐 ${new Date().toLocaleString('pt-BR')}</div></div>
       </div>`;
+      document.getElementById('tabIndividual').disabled=false;
       showTab('individual');
     }
     async function init(){
